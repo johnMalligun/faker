@@ -1,23 +1,16 @@
 const express = require("express");
-const { Faker, en, fr, pl } = require("@faker-js/faker");
+const { Faker, en, fr, pl } = require("@faker-js/faker"); // Импортируем Faker и локали
 const cors = require("cors");
 
 const app = express();
-
-// Настройка CORS для всех доменов
-app.use(cors());
-
-app.use(express.json());
-
-// Маршрут для корневого URL
-app.get("/", (req, res) => {
-  res.send("Server is running...");
-});
+app.use(cors()); // Разрешаем CORS, чтобы клиент мог делать запросы к серверу
+app.use(express.json()); // Для обработки JSON-запросов
 
 // Маршрут для генерации данных
-app.post("/api/generate-data", (req, res) => {
+app.post("/generate-data", (req, res) => {
   const { region, seed, errors, existingItems } = req.body;
 
+  // Создаём словарь соответствия регионов и локалей
   const localeMap = {
     en: en,
     fr: fr,
@@ -29,12 +22,14 @@ app.post("/api/generate-data", (req, res) => {
     locale: [selectedLocale, en],
   });
 
-  fakerInstance.seed(parseInt(seed) || 0);
+  fakerInstance.seed(parseInt(seed) || 0); // Устанавливаем seed для генерации данных
 
   const data = existingItems ? [...existingItems] : [];
 
+  // Генерация данных. Пересчитываем только новые записи
   for (let i = existingItems ? existingItems.length : 0; i < 20; i++) {
-    const id = fakerInstance.string.uuid();
+    const id = fakerInstance.string.uuid(); // Генерация ID только для новых записей
+
     let name = fakerInstance.person.fullName();
     const addressFormats = [
       () => fakerInstance.location.streetAddress(),
@@ -58,6 +53,7 @@ app.post("/api/generate-data", (req, res) => {
     const phoneFormat = fakerInstance.helpers.arrayElement(phoneFormats);
     let phone = phoneFormat();
 
+    // Применяем ошибки
     name = introduceErrors(name, errors, fakerInstance, region);
     address = introduceErrors(address, errors, fakerInstance, region);
     phone = introduceErrors(phone, errors, fakerInstance, region);
@@ -65,7 +61,41 @@ app.post("/api/generate-data", (req, res) => {
     data.push({ id, name, address, phone });
   }
 
-  res.json(data);
+  // Пересчитываем содержимое существующих записей
+  const updatedData = data.map((item) => {
+    let name = fakerInstance.person.fullName();
+    const addressFormats = [
+      () => fakerInstance.location.streetAddress(),
+      () =>
+        `${fakerInstance.location.city()}, ${fakerInstance.location.streetAddress()}, ${fakerInstance.location.state()}`,
+      () =>
+        `${fakerInstance.location.country()}, ${fakerInstance.location.city()}, ${fakerInstance.location.streetAddress()}`,
+      () => fakerInstance.location.secondaryAddress(),
+      () =>
+        `${fakerInstance.location.county()}, ${fakerInstance.location.street()}, ${fakerInstance.location.buildingNumber()}`,
+    ];
+    const addressFormat = fakerInstance.helpers.arrayElement(addressFormats);
+    let address = addressFormat();
+    const phoneFormats = [
+      () => fakerInstance.phone.number(),
+      () => fakerInstance.phone.number("###-###-####"),
+      () => fakerInstance.phone.number("+## (#) ###-##-##"),
+      () => fakerInstance.phone.number("0#########"),
+      () => fakerInstance.phone.number("(+##) #########"),
+    ];
+    const phoneFormat = fakerInstance.helpers.arrayElement(phoneFormats);
+    let phone = phoneFormat();
+
+    // Применяем ошибки
+    name = introduceErrors(name, errors, fakerInstance, region);
+    address = introduceErrors(address, errors, fakerInstance, region);
+    phone = introduceErrors(phone, errors, fakerInstance, region);
+
+    // Возвращаем обновленные данные с сохранением прежнего id
+    return { ...item, name, address, phone };
+  });
+
+  res.json(updatedData); // Возвращаем обновленные данные клиенту
 });
 
 // Функция для внесения ошибок
@@ -76,10 +106,12 @@ const introduceErrors = (data, errorCount, fakerInstance, region) => {
   const integerErrors = Math.floor(errorCount);
   const fractionalPart = errorCount - integerErrors;
 
+  // Применяем целое число ошибок
   for (let i = 0; i < integerErrors; i++) {
     newData = applyRandomError(newData, errorTypes, fakerInstance, region);
   }
 
+  // Применяем дополнительную ошибку с вероятностью, равной дробной части
   if (
     fractionalPart > 0 &&
     fakerInstance.number.float({ min: 0, max: 1 }) < fractionalPart
@@ -90,7 +122,6 @@ const introduceErrors = (data, errorCount, fakerInstance, region) => {
   return newData;
 };
 
-// Применение случайной ошибки
 const applyRandomError = (data, errorTypes, fakerInstance, region) => {
   const errorType = fakerInstance.helpers.arrayElement(errorTypes);
   const pos = fakerInstance.number.int({
@@ -98,6 +129,7 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
     max: Math.max(data.length - 1, 0),
   });
 
+  // Используем алфавит соответствующего региона
   const alphabets = {
     en: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
     pl: "aąbcćdeęfghijklłmnńoóprsśtuwyzźżAĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ",
@@ -132,10 +164,8 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
   return data;
 };
 
-// Запуск сервера
-const port = process.env.PORT || 3000;
+// Запуск сервера на порту, который назначит Heroku
+const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
-module.exports = app;

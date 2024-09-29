@@ -6,12 +6,13 @@ import Modal from "./Modal"; // Импортируем компонент мод
 const DataTable = ({ region, errors, seed, items, setItems }) => {
   const [isModalOpen, setIsModalOpen] = useState(false); // Состояние для открытия/закрытия модального окна
   const [modalContent, setModalContent] = useState(null); // Состояние для хранения данных строки
+  const [hasMore, setHasMore] = useState(true); // Состояние для контроля бесконечного скролла
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://morning-eyrie-27251-77fa605b04b1.herokuapp.com/api/generate-data",
+          "https://morning-eyrie-27251-77fa605b04b1.herokuapp.com/generate-data", // Корректный URL для вашего сервера
           {
             method: "POST",
             headers: {
@@ -21,7 +22,7 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
               region,
               seed,
               errors,
-              existingItems: items,
+              existingItems: [], // Изначально передаем пустой массив
             }),
             mode: "cors", // Указываем явно CORS
           }
@@ -38,25 +39,41 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
       }
     };
 
+    // Очищаем текущие элементы и загружаем новые при изменении region, seed, или errors
+    setItems([]);
     fetchData();
   }, [region, seed, errors, setItems]);
 
   const fetchMoreData = async () => {
     try {
       const response = await fetch(
-        "https://fake-users-server-dun.vercel.app/generate-data",
+        "https://morning-eyrie-27251-77fa605b04b1.herokuapp.com/generate-data", // Используем тот же URL для подгрузки данных
         {
-          // Ссылка изменена
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ region, seed, errors, existingItems: items }), // Передаем уже существующие записи для добавления новых
+          body: JSON.stringify({
+            region,
+            seed,
+            errors,
+            existingItems: items, // Передаем уже существующие записи для добавления новых
+          }),
         }
       );
 
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
       const newItems = await response.json();
-      setItems((prevItems) => [...prevItems, ...newItems]); // Добавляем новые записи
+
+      // Если новые элементы равны нулю, значит больше данных нет
+      if (newItems.length === 0) {
+        setHasMore(false);
+      } else {
+        setItems((prevItems) => [...prevItems, ...newItems]); // Добавляем новые записи
+      }
     } catch (error) {
       console.error("Error fetching more data:", error);
     }
@@ -82,7 +99,7 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
       <InfiniteScroll
         dataLength={items.length}
         next={fetchMoreData}
-        hasMore={true}
+        hasMore={hasMore}
         loader={<h4>Loading more...</h4>}
       >
         <table>
