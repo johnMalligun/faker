@@ -3,7 +3,15 @@ const { Faker, en, fr, pl } = require("@faker-js/faker"); // Импортиру�
 const cors = require("cors");
 
 const app = express();
-app.use(cors()); // Разрешаем CORS, чтобы клиент мог делать запросы к серверу
+
+// Настройка CORS с разрешением запросов с клиентского домена
+const corsOptions = {
+  origin: "https://fake-users-generator-green.vercel.app", // Указываем клиентский домен
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"],
+};
+
+app.use(cors(corsOptions)); // Применяем CORS с опциями
 app.use(express.json()); // Для обработки JSON-запросов
 
 // Маршрут для генерации данных
