@@ -5,16 +5,17 @@ const cors = require("cors");
 const app = express();
 
 // Настройка CORS
-app.use(
-  cors({
-    origin: true,
-    methods: "GET,POST",
-    credentials: true,
-    optionsSuccessStatus: 200,
-  })
-);
+// app.use(
+//   cors({
+//     origin: true,
+//     methods: "GET,POST",
+//     credentials: true,
+//     optionsSuccessStatus: 200,
+//   })
+// );
 
-app.options("*", cors());
+// app.options("*", cors());
+
 app.use(express.json());
 
 // Маршрут для корневого URL
