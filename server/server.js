@@ -18,7 +18,8 @@ app.options("*", cors());
 app.use(express.json());
 
 // Маршрут для генерации данных
-app.post("/generate-data", (req, res) => {
+app.post("/api/generate-data", (req, res) => {
+  // Изменен маршрут
   const { region, seed, errors, existingItems } = req.body;
 
   const localeMap = {

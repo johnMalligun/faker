@@ -8,7 +8,7 @@
   ],
   "routes": [
     {
-      "src": "/generate-data",
+      "src": "/api/generate-data",
       "methods": ["POST", "OPTIONS"],
       "dest": "/api/generate-data",
       "headers": {
