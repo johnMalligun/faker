@@ -4,18 +4,11 @@ const cors = require("cors");
 
 const app = express();
 
-// Настройка CORS для разрешения запросов только с клиентского URL
-const allowedOrigins = ["https://fake-users-generator-green.vercel.app"];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: "*",
+    methods: "GET,POST",
+    optionsSuccessStatus: 200,
   })
 );
 
@@ -106,6 +99,7 @@ app.post("/generate-data", (req, res) => {
   res.json(updatedData);
 });
 
+// Функция для внесения ошибок
 const introduceErrors = (data, errorCount, fakerInstance, region) => {
   const errorTypes = ["delete", "add", "swap"];
   let newData = data;
@@ -127,6 +121,7 @@ const introduceErrors = (data, errorCount, fakerInstance, region) => {
   return newData;
 };
 
+// Применение случайной ошибки
 const applyRandomError = (data, errorTypes, fakerInstance, region) => {
   const errorType = fakerInstance.helpers.arrayElement(errorTypes);
   const pos = fakerInstance.number.int({
@@ -168,6 +163,5 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
   return data;
 };
 
-app.listen(5000, () => {
-  console.log("Server is running on port 5000");
-});
+// Экспортируем app для Vercel
+module.exports = app;
