@@ -4,22 +4,26 @@ const cors = require("cors");
 
 const app = express();
 
+// Настройка CORS
 app.use(
   cors({
-    origin: true, // Разрешаем запросы от всех источников
-    methods: "GET,POST", // Разрешаем только GET и POST
-    credentials: true, // Включаем заголовки с куками, если это нужно
+    origin: true,
+    methods: "GET,POST",
+    credentials: true,
     optionsSuccessStatus: 200,
   })
 );
 
 app.options("*", cors());
-
 app.use(express.json());
+
+// Маршрут для корневого URL
+app.get("/", (req, res) => {
+  res.send("Server is running...");
+});
 
 // Маршрут для генерации данных
 app.post("/api/generate-data", (req, res) => {
-  // Изменен маршрут
   const { region, seed, errors, existingItems } = req.body;
 
   const localeMap = {
