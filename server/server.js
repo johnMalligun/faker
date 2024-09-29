@@ -6,11 +6,14 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
-    methods: "GET,POST",
+    origin: true, // Разрешаем запросы от всех источников
+    methods: "GET,POST", // Разрешаем только GET и POST
+    credentials: true, // Включаем заголовки с куками, если это нужно
     optionsSuccessStatus: 200,
   })
 );
+
+app.options("*", cors());
 
 app.use(express.json());
 

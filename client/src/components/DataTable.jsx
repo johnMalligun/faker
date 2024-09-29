@@ -13,22 +13,27 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
         const response = await fetch(
           "https://fake-users-server-dun.vercel.app/generate-data",
           {
-            // Ссылка изменена
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              // Возможно, потребуется указать ещё заголовки
             },
             body: JSON.stringify({
               region,
               seed,
               errors,
               existingItems: items,
-            }), // Передаем уже существующие записи
+            }),
+            mode: "cors", // Указываем явно CORS
           }
         );
 
-        const data = await response.json(); // Получаем данные с сервера
-        setItems(data); // Устанавливаем полученные данные
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setItems(data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
