@@ -10,13 +10,22 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/generate-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ region, seed, errors, existingItems: items }), // Передаем уже существующие записи
-        });
+        const response = await fetch(
+          "https://fake-users-server-dun.vercel.app/generate-data",
+          {
+            // Ссылка изменена
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              region,
+              seed,
+              errors,
+              existingItems: items,
+            }), // Передаем уже существующие записи
+          }
+        );
 
         const data = await response.json(); // Получаем данные с сервера
         setItems(data); // Устанавливаем полученные данные
@@ -30,13 +39,17 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
 
   const fetchMoreData = async () => {
     try {
-      const response = await fetch("http://localhost:5000/generate-data", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ region, seed, errors, existingItems: items }), // Передаем уже существующие записи для добавления новых
-      });
+      const response = await fetch(
+        "https://fake-users-server-dun.vercel.app/generate-data",
+        {
+          // Ссылка изменена
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ region, seed, errors, existingItems: items }), // Передаем уже существующие записи для добавления новых
+        }
+      );
 
       const newItems = await response.json();
       setItems((prevItems) => [...prevItems, ...newItems]); // Добавляем новые записи
@@ -81,7 +94,6 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
           <tbody>
             {items.map((item, index) => (
               <tr key={`${item.id}-${index}`} onClick={() => openModal(item)}>
-                {/* Удаляем обрезку контента с использованием slice */}
                 <td>{index + 1}</td>
                 <td>{item.id}</td>
                 <td>{item.name}</td>
