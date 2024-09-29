@@ -3,14 +3,18 @@ const { Faker, en, fr, pl } = require("@faker-js/faker"); // Импортиру�
 const cors = require("cors");
 
 const app = express();
-app.use(cors()); // Разрешаем CORS, чтобы клиент мог делать запросы к серверу
+app.use(cors()); // Разрешаем CORS
 app.use(express.json()); // Для обработки JSON-запросов
+
+// Корневой маршрут, который будет возвращать простой ответ
+app.get("/", (req, res) => {
+  res.send("Server is running...");
+});
 
 // Маршрут для генерации данных
 app.post("/generate-data", (req, res) => {
   const { region, seed, errors, existingItems } = req.body;
 
-  // Создаём словарь соответствия регионов и локалей
   const localeMap = {
     en: en,
     fr: fr,
@@ -22,14 +26,13 @@ app.post("/generate-data", (req, res) => {
     locale: [selectedLocale, en],
   });
 
-  fakerInstance.seed(parseInt(seed) || 0); // Устанавливаем seed для генерации данных
+  fakerInstance.seed(parseInt(seed) || 0); // Устанавливаем seed
 
   const data = existingItems ? [...existingItems] : [];
 
-  // Генерация данных. Пересчитываем только новые записи
+  // Генерация данных
   for (let i = existingItems ? existingItems.length : 0; i < 20; i++) {
-    const id = fakerInstance.string.uuid(); // Генерация ID только для новых записей
-
+    const id = fakerInstance.string.uuid();
     let name = fakerInstance.person.fullName();
     const addressFormats = [
       () => fakerInstance.location.streetAddress(),
@@ -53,7 +56,6 @@ app.post("/generate-data", (req, res) => {
     const phoneFormat = fakerInstance.helpers.arrayElement(phoneFormats);
     let phone = phoneFormat();
 
-    // Применяем ошибки
     name = introduceErrors(name, errors, fakerInstance, region);
     address = introduceErrors(address, errors, fakerInstance, region);
     phone = introduceErrors(phone, errors, fakerInstance, region);
@@ -61,41 +63,7 @@ app.post("/generate-data", (req, res) => {
     data.push({ id, name, address, phone });
   }
 
-  // Пересчитываем содержимое существующих записей
-  const updatedData = data.map((item) => {
-    let name = fakerInstance.person.fullName();
-    const addressFormats = [
-      () => fakerInstance.location.streetAddress(),
-      () =>
-        `${fakerInstance.location.city()}, ${fakerInstance.location.streetAddress()}, ${fakerInstance.location.state()}`,
-      () =>
-        `${fakerInstance.location.country()}, ${fakerInstance.location.city()}, ${fakerInstance.location.streetAddress()}`,
-      () => fakerInstance.location.secondaryAddress(),
-      () =>
-        `${fakerInstance.location.county()}, ${fakerInstance.location.street()}, ${fakerInstance.location.buildingNumber()}`,
-    ];
-    const addressFormat = fakerInstance.helpers.arrayElement(addressFormats);
-    let address = addressFormat();
-    const phoneFormats = [
-      () => fakerInstance.phone.number(),
-      () => fakerInstance.phone.number("###-###-####"),
-      () => fakerInstance.phone.number("+## (#) ###-##-##"),
-      () => fakerInstance.phone.number("0#########"),
-      () => fakerInstance.phone.number("(+##) #########"),
-    ];
-    const phoneFormat = fakerInstance.helpers.arrayElement(phoneFormats);
-    let phone = phoneFormat();
-
-    // Применяем ошибки
-    name = introduceErrors(name, errors, fakerInstance, region);
-    address = introduceErrors(address, errors, fakerInstance, region);
-    phone = introduceErrors(phone, errors, fakerInstance, region);
-
-    // Возвращаем обновленные данные с сохранением прежнего id
-    return { ...item, name, address, phone };
-  });
-
-  res.json(updatedData); // Возвращаем обновленные данные клиенту
+  res.json(data); // Возвращаем данные
 });
 
 // Функция для внесения ошибок
@@ -106,12 +74,10 @@ const introduceErrors = (data, errorCount, fakerInstance, region) => {
   const integerErrors = Math.floor(errorCount);
   const fractionalPart = errorCount - integerErrors;
 
-  // Применяем целое число ошибок
   for (let i = 0; i < integerErrors; i++) {
     newData = applyRandomError(newData, errorTypes, fakerInstance, region);
   }
 
-  // Применяем дополнительную ошибку с вероятностью, равной дробной части
   if (
     fractionalPart > 0 &&
     fakerInstance.number.float({ min: 0, max: 1 }) < fractionalPart
@@ -129,7 +95,6 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
     max: Math.max(data.length - 1, 0),
   });
 
-  // Используем алфавит соответствующего региона
   const alphabets = {
     en: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
     pl: "aąbcćdeęfghijklłmnńoóprsśtuwyzźżAĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ",

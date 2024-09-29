@@ -12,7 +12,7 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://morning-eyrie-27251-77fa605b04b1.herokuapp.com/generate-data", // Корректный URL для вашего сервера
+          "https://morning-eyrie-27251-77fa605b04b1.herokuapp.com/generate-data", // Обновленный URL без /api
           {
             method: "POST",
             headers: {
