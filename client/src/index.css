@@ -21,6 +21,8 @@ a:hover {
 
 body {
   margin: 0;
+  display: flex;
+  justify-content: center;
   min-width: 320px;
   min-height: 100vh;
   background-color: #242424;
@@ -29,11 +31,12 @@ body {
 .App {
   width: 90vw;
   max-width: 1200px;
-  margin: 100px auto 0; /* Добавили отступ сверху, чтобы панель управления не перекрывала контент */
+  margin: 0 auto;
   padding: 20px;
   background-color: #333;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 h1 {
@@ -70,6 +73,7 @@ select {
   margin-bottom: 1.2em;
   font-size: 1em;
   width: 100%;
+  max-width: 100%;
   border-radius: 8px;
   border: 1px solid #ccc;
   background-color: #333;
@@ -89,6 +93,7 @@ table {
   background-color: #fff;
   table-layout: fixed;
   transition: all 0.3s ease-in-out;
+  overflow-x: hidden;
 }
 
 th,
@@ -187,7 +192,7 @@ tr:hover {
   font-weight: normal;
 }
 
-/* Фиксация панели управления */
+/* Обновленный стиль панели управления */
 .control-panel {
   display: flex;
   flex-direction: column;
@@ -197,10 +202,9 @@ tr:hover {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   color: #fff;
-  position: fixed; /* Фиксируем панель управления */
-  top: 20px; /* Прижимаем к верхнему краю */
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed; /* Фиксируем положение */
+  bottom: 20px; /* Отступ снизу */
+  right: 20px; /* Отступ справа */
   z-index: 10;
   width: 100%;
   max-width: 400px;
@@ -270,24 +274,6 @@ tr:hover {
 
 .export-button a:hover {
   background-color: #646cff;
-}
-
-/* Стили загрузки */
-.table-loading {
-  position: relative;
-  min-height: 100px; /* Устанавливаем минимальную высоту для таблицы */
-}
-
-.table-loading::after {
-  content: "Loading...";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.8);
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-size: 1.2rem;
 }
 
 @media (max-width: 600px) {

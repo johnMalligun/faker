@@ -137,13 +137,13 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
                 ID: <span>{modalContent.id}</span>
               </p>
               <p>
-                ФИО: <span>{modalContent.name}</span>
+                Name: <span>{modalContent.name}</span>
               </p>
               <p>
-                Адрес: <span>{modalContent.address}</span>
+                Address: <span>{modalContent.address}</span>
               </p>
               <p>
-                Телефон: <span>{modalContent.phone}</span>
+                Phone number: <span>{modalContent.phone}</span>
               </p>
             </>
           }
