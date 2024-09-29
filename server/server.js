@@ -1,18 +1,30 @@
 const express = require("express");
-const { Faker, en, fr, pl } = require("@faker-js/faker"); // Импортируем Faker и локали
+const { Faker, en, fr, pl } = require("@faker-js/faker");
 const cors = require("cors");
 
 const app = express();
 
-// Полностью разрешаем CORS для любых доменов
-app.use(cors());
-app.use(express.json()); // Для обработки JSON-запросов
+// Настройка CORS для разрешения запросов только с клиентского URL
+const allowedOrigins = ["https://fake-users-generator-green.vercel.app"];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  })
+);
+
+app.use(express.json());
 
 // Маршрут для генерации данных
 app.post("/generate-data", (req, res) => {
   const { region, seed, errors, existingItems } = req.body;
 
-  // Создаём словарь соответствия регионов и локалей
   const localeMap = {
     en: en,
     fr: fr,
@@ -24,14 +36,12 @@ app.post("/generate-data", (req, res) => {
     locale: [selectedLocale, en],
   });
 
-  fakerInstance.seed(parseInt(seed) || 0); // Устанавливаем seed для генерации данных
+  fakerInstance.seed(parseInt(seed) || 0);
 
   const data = existingItems ? [...existingItems] : [];
 
-  // Генерация данных. Пересчитываем только новые записи
   for (let i = existingItems ? existingItems.length : 0; i < 20; i++) {
-    const id = fakerInstance.string.uuid(); // Генерация ID только для новых записей
-
+    const id = fakerInstance.string.uuid();
     let name = fakerInstance.person.fullName();
     const addressFormats = [
       () => fakerInstance.location.streetAddress(),
@@ -55,7 +65,6 @@ app.post("/generate-data", (req, res) => {
     const phoneFormat = fakerInstance.helpers.arrayElement(phoneFormats);
     let phone = phoneFormat();
 
-    // Применяем ошибки
     name = introduceErrors(name, errors, fakerInstance, region);
     address = introduceErrors(address, errors, fakerInstance, region);
     phone = introduceErrors(phone, errors, fakerInstance, region);
@@ -63,7 +72,6 @@ app.post("/generate-data", (req, res) => {
     data.push({ id, name, address, phone });
   }
 
-  // Пересчитываем содержимое существующих записей
   const updatedData = data.map((item) => {
     let name = fakerInstance.person.fullName();
     const addressFormats = [
@@ -88,19 +96,16 @@ app.post("/generate-data", (req, res) => {
     const phoneFormat = fakerInstance.helpers.arrayElement(phoneFormats);
     let phone = phoneFormat();
 
-    // Применяем ошибки
     name = introduceErrors(name, errors, fakerInstance, region);
     address = introduceErrors(address, errors, fakerInstance, region);
     phone = introduceErrors(phone, errors, fakerInstance, region);
 
-    // Возвращаем обновленные данные с сохранением прежнего id
     return { ...item, name, address, phone };
   });
 
-  res.json(updatedData); // Возвращаем обновленные данные клиенту
+  res.json(updatedData);
 });
 
-// Функция для внесения ошибок
 const introduceErrors = (data, errorCount, fakerInstance, region) => {
   const errorTypes = ["delete", "add", "swap"];
   let newData = data;
@@ -108,12 +113,10 @@ const introduceErrors = (data, errorCount, fakerInstance, region) => {
   const integerErrors = Math.floor(errorCount);
   const fractionalPart = errorCount - integerErrors;
 
-  // Применяем целое число ошибок
   for (let i = 0; i < integerErrors; i++) {
     newData = applyRandomError(newData, errorTypes, fakerInstance, region);
   }
 
-  // Применяем дополнительную ошибку с вероятностью, равной дробной части
   if (
     fractionalPart > 0 &&
     fakerInstance.number.float({ min: 0, max: 1 }) < fractionalPart
@@ -131,7 +134,6 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
     max: Math.max(data.length - 1, 0),
   });
 
-  // Используем алфавит соответствующего региона
   const alphabets = {
     en: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
     pl: "aąbcćdeęfghijklłmnńoóprsśtuwyzźżAĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ",
@@ -166,7 +168,6 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
   return data;
 };
 
-// Запускаем сервер на порту 5000
 app.listen(5000, () => {
   console.log("Server is running on port 5000");
 });
