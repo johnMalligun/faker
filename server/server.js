@@ -4,14 +4,8 @@ const cors = require("cors");
 
 const app = express();
 
-// Настройка CORS с разрешением запросов с клиентского домена
-const corsOptions = {
-  origin: "https://fake-users-generator-green.vercel.app", // Указываем клиентский домен
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"],
-};
-
-app.use(cors(corsOptions)); // Применяем CORS с опциями
+// Полностью разрешаем CORS для любых доменов
+app.use(cors());
 app.use(express.json()); // Для обработки JSON-запросов
 
 // Маршрут для генерации данных
