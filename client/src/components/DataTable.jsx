@@ -11,12 +11,11 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://fake-users-server-dun.vercel.app/generate-data",
+          "https://morning-eyrie-27251-77fa605b04b1.herokuapp.com/api/generate-data",
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              // Возможно, потребуется указать ещё заголовки
             },
             body: JSON.stringify({
               region,

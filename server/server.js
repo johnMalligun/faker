@@ -1,12 +1,12 @@
 const express = require("express");
 const { Faker, en, fr, pl } = require("@faker-js/faker");
-// const cors = require("cors");
+const cors = require("cors");
 
 const app = express();
 
-// Настройка CORS — временно убрано для тестирования
-// app.use(cors());
-// app.options("*", cors()); // Это тоже отключаем
+// Настройка CORS для всех доменов
+app.use(cors());
+
 app.use(express.json());
 
 // Маршрут для корневого URL
@@ -65,38 +65,7 @@ app.post("/api/generate-data", (req, res) => {
     data.push({ id, name, address, phone });
   }
 
-  const updatedData = data.map((item) => {
-    let name = fakerInstance.person.fullName();
-    const addressFormats = [
-      () => fakerInstance.location.streetAddress(),
-      () =>
-        `${fakerInstance.location.city()}, ${fakerInstance.location.streetAddress()}, ${fakerInstance.location.state()}`,
-      () =>
-        `${fakerInstance.location.country()}, ${fakerInstance.location.city()}, ${fakerInstance.location.streetAddress()}`,
-      () => fakerInstance.location.secondaryAddress(),
-      () =>
-        `${fakerInstance.location.county()}, ${fakerInstance.location.street()}, ${fakerInstance.location.buildingNumber()}`,
-    ];
-    const addressFormat = fakerInstance.helpers.arrayElement(addressFormats);
-    let address = addressFormat();
-    const phoneFormats = [
-      () => fakerInstance.phone.number(),
-      () => fakerInstance.phone.number("###-###-####"),
-      () => fakerInstance.phone.number("+## (#) ###-##-##"),
-      () => fakerInstance.phone.number("0#########"),
-      () => fakerInstance.phone.number("(+##) #########"),
-    ];
-    const phoneFormat = fakerInstance.helpers.arrayElement(phoneFormats);
-    let phone = phoneFormat();
-
-    name = introduceErrors(name, errors, fakerInstance, region);
-    address = introduceErrors(address, errors, fakerInstance, region);
-    phone = introduceErrors(phone, errors, fakerInstance, region);
-
-    return { ...item, name, address, phone };
-  });
-
-  res.json(updatedData);
+  res.json(data);
 });
 
 // Функция для внесения ошибок
@@ -167,7 +136,6 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-  console.log(`Listening on port ${port}`);
 });
 
 module.exports = app;
