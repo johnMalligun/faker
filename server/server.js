@@ -171,5 +171,10 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
   return data;
 };
 
-// Экспортируем app для Vercel
+// Запуск сервера
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
 module.exports = app;
