@@ -1,21 +1,12 @@
 const express = require("express");
 const { Faker, en, fr, pl } = require("@faker-js/faker");
-const cors = require("cors");
+// const cors = require("cors");
 
 const app = express();
 
-// Настройка CORS
-// app.use(
-//   cors({
-//     origin: true,
-//     methods: "GET,POST",
-//     credentials: true,
-//     optionsSuccessStatus: 200,
-//   })
-// );
-
-// app.options("*", cors());
-
+// Настройка CORS — временно убрано для тестирования
+// app.use(cors());
+// app.options("*", cors()); // Это тоже отключаем
 app.use(express.json());
 
 // Маршрут для корневого URL
@@ -176,6 +167,7 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  console.log(`Listening on port ${port}`);
 });
 
 module.exports = app;
