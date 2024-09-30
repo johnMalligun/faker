@@ -107,7 +107,6 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
           dataLength={items.length}
           next={fetchMoreData}
           hasMore={hasMore}
-          loader={<h4>Loading more...</h4>}
           scrollableTarget="scrollableDiv"
         >
           <table style={{ marginTop: "10px" }}>
