@@ -94,35 +94,45 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
 
   return (
     <>
-      <InfiniteScroll
-        dataLength={items.length}
-        next={fetchMoreData}
-        hasMore={hasMore}
-        loader={<h4>Loading more...</h4>}
+      <div
+        id="scrollableDiv"
+        style={{
+          height: "400px", // Фиксированная высота для области со скроллом
+          overflow: "auto",
+          border: "1px solid #ccc",
+        }}
       >
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>ID</th>
-              <th>ФИО</th>
-              <th>Адрес</th>
-              <th>Телефон</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr key={`${item.id}-${index}`} onClick={() => openModal(item)}>
-                <td>{index + 1}</td>
-                <td>{item.id}</td>
-                <td>{item.name}</td>
-                <td>{item.address}</td>
-                <td>{item.phone}</td>
+        <InfiniteScroll
+          dataLength={items.length}
+          next={fetchMoreData}
+          hasMore={hasMore}
+          loader={<h4>Loading more...</h4>}
+          scrollableTarget="scrollableDiv"
+        >
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ID</th>
+                <th>ФИО</th>
+                <th>Адрес</th>
+                <th>Телефон</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </InfiniteScroll>
+            </thead>
+            <tbody>
+              {items.map((item, index) => (
+                <tr key={`${item.id}-${index}`} onClick={() => openModal(item)}>
+                  <td>{index + 1}</td>
+                  <td>{item.id}</td>
+                  <td>{item.name}</td>
+                  <td>{item.address}</td>
+                  <td>{item.phone}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </InfiniteScroll>
+      </div>
 
       {/* Модальное окно для отображения всей строки */}
       {modalContent && (
