@@ -1,17 +1,15 @@
 const express = require("express");
-const { Faker, en, fr, pl } = require("@faker-js/faker"); // Импортируем Faker и локали
+const { Faker, en, fr, pl } = require("@faker-js/faker");
 const cors = require("cors");
 
 const app = express();
-app.use(cors()); // Разрешаем CORS
-app.use(express.json()); // Для обработки JSON-запросов
+app.use(cors());
+app.use(express.json());
 
-// Корневой маршрут, который будет возвращать простой ответ
 app.get("/", (req, res) => {
   res.send("Server is running...");
 });
 
-// Маршрут для генерации данных
 app.post("/generate-data", (req, res) => {
   const { region, seed, errors, existingItems } = req.body;
 
@@ -26,14 +24,57 @@ app.post("/generate-data", (req, res) => {
     locale: [selectedLocale, en],
   });
 
-  fakerInstance.seed(parseInt(seed) || 0); // Устанавливаем seed
+  fakerInstance.seed(parseInt(seed) || 0);
 
   const data = existingItems ? [...existingItems] : [];
 
-  // Генерация данных
-  for (let i = existingItems ? existingItems.length : 0; i < 20; i++) {
-    const id = fakerInstance.string.uuid();
+  // Если у нас есть существующие элементы, мы их обновляем, а не пересчитываем заново
+  const updatedData = existingItems
+    ? existingItems.map((item) => {
+        let name = fakerInstance.person.fullName();
+        const addressFormats = [
+          () => fakerInstance.location.streetAddress(),
+          () =>
+            `${fakerInstance.location.city()}, ${fakerInstance.location.streetAddress()}, ${fakerInstance.location.state()}`,
+          () =>
+            `${fakerInstance.location.country()}, ${fakerInstance.location.city()}, ${fakerInstance.location.streetAddress()}`,
+          () => fakerInstance.location.secondaryAddress(),
+          () =>
+            `${fakerInstance.location.county()}, ${fakerInstance.location.street()}, ${fakerInstance.location.buildingNumber()}`,
+        ];
+        const addressFormat =
+          fakerInstance.helpers.arrayElement(addressFormats);
+        let address = addressFormat();
+
+        const phoneFormats = [
+          () => fakerInstance.phone.number(),
+          () => fakerInstance.phone.number("###-###-####"),
+          () => fakerInstance.phone.number("+## (#) ###-##-##"),
+          () => fakerInstance.phone.number("0#########"),
+          () => fakerInstance.phone.number("(+##) #########"),
+        ];
+        const phoneFormat = fakerInstance.helpers.arrayElement(phoneFormats);
+        let phone = phoneFormat();
+
+        // Применяем ошибки только к содержимому, но не к id
+        name = introduceErrors(name, errors, fakerInstance, region);
+        address = introduceErrors(address, errors, fakerInstance, region);
+        phone = introduceErrors(phone, errors, fakerInstance, region);
+
+        return {
+          ...item, // сохраняем id и все остальные поля
+          name,
+          address,
+          phone,
+        };
+      })
+    : [];
+
+  // Генерация новых данных только для новых элементов
+  for (let i = updatedData.length; i < 20; i++) {
+    const id = fakerInstance.string.uuid(); // Генерация ID только для новых записей
     let name = fakerInstance.person.fullName();
+
     const addressFormats = [
       () => fakerInstance.location.streetAddress(),
       () =>
@@ -44,8 +85,10 @@ app.post("/generate-data", (req, res) => {
       () =>
         `${fakerInstance.location.county()}, ${fakerInstance.location.street()}, ${fakerInstance.location.buildingNumber()}`,
     ];
+
     const addressFormat = fakerInstance.helpers.arrayElement(addressFormats);
     let address = addressFormat();
+
     const phoneFormats = [
       () => fakerInstance.phone.number(),
       () => fakerInstance.phone.number("###-###-####"),
@@ -53,17 +96,19 @@ app.post("/generate-data", (req, res) => {
       () => fakerInstance.phone.number("0#########"),
       () => fakerInstance.phone.number("(+##) #########"),
     ];
+
     const phoneFormat = fakerInstance.helpers.arrayElement(phoneFormats);
     let phone = phoneFormat();
 
+    // Применяем ошибки
     name = introduceErrors(name, errors, fakerInstance, region);
     address = introduceErrors(address, errors, fakerInstance, region);
     phone = introduceErrors(phone, errors, fakerInstance, region);
 
-    data.push({ id, name, address, phone });
+    updatedData.push({ id, name, address, phone });
   }
 
-  res.json(data); // Возвращаем данные
+  res.json(updatedData);
 });
 
 // Функция для внесения ошибок
@@ -129,7 +174,7 @@ const applyRandomError = (data, errorTypes, fakerInstance, region) => {
   return data;
 };
 
-// Запуск сервера на порту, который назначит Heroku
+// Запуск сервера на порту
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

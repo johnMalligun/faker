@@ -22,7 +22,7 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
               region,
               seed,
               errors,
-              existingItems: [], // Изначально передаем пустой массив
+              existingItems: items, // Передаем уже существующие элементы
             }),
             mode: "cors", // Указываем явно CORS
           }
@@ -33,16 +33,14 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
         }
 
         const data = await response.json();
-        setItems(data);
+        setItems(data); // Устанавливаем данные
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
 
-    // Очищаем текущие элементы и загружаем новые при изменении region, seed, или errors
-    setItems([]);
     fetchData();
-  }, [region, seed, errors, setItems]);
+  }, [region, seed, errors, items, setItems]);
 
   const fetchMoreData = async () => {
     try {
