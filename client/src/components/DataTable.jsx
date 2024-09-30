@@ -97,9 +97,10 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
       <div
         id="scrollableDiv"
         style={{
-          height: "400px", // Фиксированная высота для области со скроллом
+          height: "70vh", // Высота 70% от высоты экрана
           overflow: "auto",
           border: "1px solid #ccc",
+          marginTop: "20px", // Добавляем отступ сверху
         }}
       >
         <InfiniteScroll
@@ -109,7 +110,9 @@ const DataTable = ({ region, errors, seed, items, setItems }) => {
           loader={<h4>Loading more...</h4>}
           scrollableTarget="scrollableDiv"
         >
-          <table>
+          <table style={{ marginTop: "10px" }}>
+            {" "}
+            {/* Небольшой margin top для самой таблицы */}
             <thead>
               <tr>
                 <th>#</th>
